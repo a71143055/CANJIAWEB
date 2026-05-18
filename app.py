@@ -11,12 +11,16 @@ import os
 from datetime import datetime, timedelta
 import secrets
 import string
+import pyotp
+import qrcode
+import io
+import base64
 from config import config
 
 # Flask 앱 초기화
 app = Flask(__name__)
 app.config.from_object(config['development'])
-app.secret_key = app.config.get('SECRET_KEY') or 'canjia-secret-key-2026'
+app.config['SECRET_KEY'] = 'canjia-secret-key-2026'
 
 # 데이터베이스 초기화
 db = SQLAlchemy(app)
@@ -29,8 +33,12 @@ Session(app)
 # ============================================================
 
 def generate_two_factor_code():
-    """6자리 2차 인증 코드 생성"""
+    """6자리 2차 인증 코드 생성 (이메일용 - 더 이상 사용 안함)"""
     return ''.join(secrets.choice(string.digits) for _ in range(6))
+
+def generate_totp_secret():
+    """TOTP 시크릿 키 생성"""
+    return pyotp.random_base32()
 
 # ============================================================
 # 데이터베이스 모델
@@ -48,7 +56,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_verified = db.Column(db.Boolean, default=False)
     two_factor_enabled = db.Column(db.Boolean, default=True)  # 기본 활성화
-    two_factor_method = db.Column(db.String(20), default='email')  # 'email' 또는 'app'
+    two_factor_method = db.Column(db.String(20), default='totp')  # 'totp' 또는 'none'
+    totp_secret = db.Column(db.String(32))  # TOTP 시크릿 키
     
     documents = db.relationship('Document', backref='author', lazy=True)
     

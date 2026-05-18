@@ -9,7 +9,7 @@ param(
 
 # 색상 정의
 $Success = "Green"
-$Error = "Red"
+$ErrorColor = "Red"
 $Info = "Cyan"
 $Warning = "Yellow"
 
@@ -38,7 +38,7 @@ function Write-Success {
 
 function Write-Error {
     param([string]$Text)
-    Write-Host "❌ $Text" -ForegroundColor $Error
+    Write-Host "❌ $Text" -ForegroundColor $ErrorColor
 }
 
 # 메인 로직

@@ -24,6 +24,14 @@ db = SQLAlchemy(app)
 Session(app)
 
 # ============================================================
+# 유틸리티 함수
+# ============================================================
+
+def generate_two_factor_code():
+    """6자리 2차 인증 코드 생성"""
+    return ''.join(secrets.choice(string.digits) for _ in range(6))
+
+# ============================================================
 # 데이터베이스 모델
 # ============================================================
 
@@ -115,15 +123,115 @@ def intro():
     """소개 페이지"""
     return render_template('intro.html')
 
-@app.route('/auth/login')
+@app.route('/auth/login', methods=['GET', 'POST'])
 def login():
     """로그인 페이지"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and user.check_password(password):
+            # 로그인 성공 - 2차 인증 필요
+            if user.two_factor_enabled:
+                # 2차 인증 코드 생성
+                code = generate_two_factor_code()
+                tfa_code = TwoFactorCode(user_id=user.id, code=code)
+                db.session.add(tfa_code)
+                db.session.commit()
+                
+                # 임시 세션에 사용자 ID 저장
+                session['pending_user_id'] = user.id
+                session['pending_email'] = user.email
+                
+                # 실제 배포 시 이메일 발송 로직 추가
+                print(f"2FA Code for {email}: {code}")
+                flash('이메일로 인증 코드를 보냈습니다.', 'info')
+                
+                return redirect(url_for('verify_2fa'))
+            else:
+                # 2FA 미사용시 바로 로그인
+                session['user_id'] = user.id
+                return redirect(url_for('index'))
+        else:
+            flash('이메일 또는 비밀번호가 잘못되었습니다.', 'error')
+    
     return render_template('login.html')
 
-@app.route('/auth/signup')
+@app.route('/auth/signup', methods=['GET', 'POST'])
 def signup():
     """회원가입 페이지"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        name = request.form.get('name')
+        password = request.form.get('password')
+        password_confirm = request.form.get('password_confirm')
+        
+        # 유효성 검사
+        if not email or not name or not password:
+            flash('모든 필드를 입력해주세요.', 'error')
+            return render_template('signup.html')
+        
+        if password != password_confirm:
+            flash('비밀번호가 일치하지 않습니다.', 'error')
+            return render_template('signup.html')
+        
+        if len(password) < 6:
+            flash('비밀번호는 최소 6자 이상이어야 합니다.', 'error')
+            return render_template('signup.html')
+        
+        # 중복 이메일 확인
+        if User.query.filter_by(email=email).first():
+            flash('이미 가입된 이메일입니다.', 'error')
+            return render_template('signup.html')
+        
+        # 새 사용자 생성
+        user = User(email=email, name=name)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('회원가입이 완료되었습니다. 로그인해주세요.', 'success')
+        return redirect(url_for('login'))
+    
     return render_template('signup.html')
+
+@app.route('/auth/verify-2fa', methods=['GET', 'POST'])
+def verify_2fa():
+    """2차 인증 코드 검증"""
+    if 'pending_user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        code = request.form.get('code')
+        pending_user_id = session.get('pending_user_id')
+        
+        # 최근 미사용 인증 코드 찾기
+        tfa_code = TwoFactorCode.query.filter_by(
+            user_id=pending_user_id,
+            code=code,
+            is_used=False
+        ).order_by(TwoFactorCode.created_at.desc()).first()
+        
+        if tfa_code and not tfa_code.is_expired():
+            # 코드 사용 처리
+            tfa_code.is_used = True
+            tfa_code.used_at = datetime.utcnow()
+            db.session.commit()
+            
+            # 세션에 사용자 저장
+            session['user_id'] = pending_user_id
+            session.pop('pending_user_id', None)
+            session.pop('pending_email', None)
+            
+            flash('로그인되었습니다.', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('인증 코드가 잘못되었거나 만료되었습니다.', 'error')
+    
+    pending_email = session.get('pending_email', '')
+    return render_template('verify_2fa.html', email=pending_email)
 
 @app.route('/auth/profile')
 def profile():
@@ -279,7 +387,17 @@ def api_user_profile():
 def logout():
     """로그아웃"""
     session.clear()
+    flash('로그아웃되었습니다.', 'success')
     return redirect(url_for('index'))
+
+@app.route('/auth/settings')
+def auth_settings():
+    """2FA 설정 페이지"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    return render_template('auth_settings.html', user=user)
 
 @app.errorhandler(404)
 def not_found(error):

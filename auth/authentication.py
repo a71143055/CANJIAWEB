@@ -1,55 +1,13 @@
 """
 CANJIA 인증 모듈
-Microsoft OAuth 2.0 기반 로그인 구현
+이메일/비밀번호 기반 로그인 + 2차 인증
 """
 
-import os
-from datetime import datetime
-import msal
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import session, redirect, url_for
-
-class MicrosoftAuthenticator:
-    """Microsoft OAuth 2.0 인증 클래스"""
-    
-    def __init__(self, client_id, client_secret, authority, redirect_path):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.authority = authority
-        self.redirect_path = redirect_path
-        
-        self.app = msal.PublicClientApplication(
-            client_id=client_id,
-            authority=authority
-        )
-    
-    def get_auth_url(self):
-        """인증 URL 생성"""
-        auth_code_flow = self.app.initiate_auth_code_flow(
-            scopes=['user.read'],
-            redirect_uri=self.redirect_path
-        )
-        return auth_code_flow['auth_uri'], auth_code_flow['state']
-    
-    def acquire_token_by_auth_code(self, auth_code):
-        """인증 코드로 토큰 획득"""
-        result = self.app.acquire_token_by_auth_code(
-            auth_code,
-            scopes=['user.read'],
-            redirect_uri=self.redirect_path
-        )
-        return result
-    
-    def get_user_info(self, access_token):
-        """사용자 정보 조회"""
-        import requests
-        
-        headers = {'Authorization': f'Bearer {access_token}'}
-        response = requests.get('https://graph.microsoft.com/v1.0/me', headers=headers)
-        
-        if response.status_code == 200:
-            return response.json()
-        return None
+import secrets
+import string
 
 def login_required(f):
     """로그인 필수 데코레이터"""
@@ -60,41 +18,42 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def admin_required(f):
-    """관리자 권한 필수 데코레이터"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        
-        # 관리자 권한 확인 로직
-        # from app import User
-        # user = User.query.get(session['user_id'])
-        # if not user.is_admin:
-        #     return redirect(url_for('index'))
-        
-        return f(*args, **kwargs)
-    return decorated_function
-
-def two_factor_required(f):
-    """2차 인증 필수 데코레이터"""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        
-        if not session.get('two_factor_verified'):
-            # 2차 인증 페이지로 리다이렉트
-            return redirect(url_for('two_factor_auth'))
-        
-        return f(*args, **kwargs)
-    return decorated_function
-
 def generate_two_factor_code():
-    """2차 인증 코드 생성"""
-    import random
-    return ''.join(str(random.randint(0, 9)) for _ in range(6))
+    """6자리 2차 인증 코드 생성"""
+    return ''.join(secrets.choice(string.digits) for _ in range(6))
 
-def verify_two_factor_code(user_code, stored_code):
-    """2차 인증 코드 검증"""
-    return user_code == stored_code
+def send_2fa_code_email(email, code):
+    """
+    2차 인증 코드를 이메일로 전송
+    실제 배포 시 이메일 서비스(SMTP) 연동 필요
+    """
+    # TODO: 이메일 전송 로직 구현
+    # from flask_mail import Mail, Message
+    # msg = Message(
+    #     subject=f'CANJIA 2단계 인증 코드: {code}',
+    #     recipients=[email],
+    #     html=f'<p>인증 코드: <strong>{code}</strong></p><p>10분 내에 입력해주세요.</p>'
+    # )
+    # mail.send(msg)
+    
+    # 개발 환경에서는 콘솔에 출력
+    print(f"[2FA] {email}에 인증 코드 전송: {code}")
+    return True
+
+def verify_password_strength(password):
+    """
+    비밀번호 강도 확인
+    최소 6자, 숫자 포함 권장
+    """
+    if len(password) < 6:
+        return False, "최소 6자 이상이어야 합니다"
+    
+    has_upper = any(c.isupper() for c in password)
+    has_lower = any(c.islower() for c in password)
+    has_digit = any(c.isdigit() for c in password)
+    
+    # 강도: 약(1단계) - 중간(2단계) - 강(3단계)
+    strength = sum([has_upper, has_lower, has_digit])
+    
+    return True, strength
+

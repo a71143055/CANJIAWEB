@@ -22,12 +22,6 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///canjia.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Microsoft OAuth 설정
-    MICROSOFT_CLIENT_ID = os.environ.get('MICROSOFT_CLIENT_ID', 'your-client-id')
-    MICROSOFT_CLIENT_SECRET = os.environ.get('MICROSOFT_CLIENT_SECRET', 'your-client-secret')
-    MICROSOFT_AUTHORITY = 'https://login.microsoftonline.com/common'
-    MICROSOFT_REDIRECT_PATH = '/auth/callback'
-    
     # CANJIA 설정
     CANJIA_FIELDS = [
         'AGI', 'ACTF', '수영', '스키', '암벽등반', '카페취업', '기술연마'
@@ -36,6 +30,13 @@ class Config:
     CANJIA_GOALS = [
         '경제자립', '취미생활', '기술증진', '회원모집', '주거이전', '생명연장', '우주유영'
     ]
+    
+    # 이메일 설정 (선택사항)
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    MAIL_PORT = os.environ.get('MAIL_PORT', 587)
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
 class DevelopmentConfig(Config):
     """개발 환경 설정"""

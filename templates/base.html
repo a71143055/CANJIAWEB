@@ -18,6 +18,7 @@
                     <li><a href="/fields">분야</a></li>
                     <li><a href="/documents">내 문서</a></li>
                     <li><a href="/auth/profile">프로필</a></li>
+                    <li><a href="/auth/settings">보안</a></li>
                     <li><a href="/auth/logout" class="btn btn-secondary">로그아웃</a></li>
                 {% else %}
                     <li><a href="/auth/login" class="btn btn-primary">로그인</a></li>
@@ -26,6 +27,19 @@
             </ul>
         </div>
     </nav>
+
+    <!-- 알림 메시지 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}error{% elif category == 'success' %}success{% else %}info{% endif %}" style="margin-bottom: 1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
 
     <!-- 메인 컨텐츠 -->
     <main>
@@ -43,3 +57,4 @@
     {% block scripts %}{% endblock %}
 </body>
 </html>
+

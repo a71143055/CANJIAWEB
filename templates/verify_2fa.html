@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}2차 인증 - CANJIA{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 80vh; display: flex; align-items: center; padding: 2rem;">
+    <div class="container">
+        <div style="max-width: 400px; margin: 0 auto;">
+            <div class="card">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+                    <h2 style="color: var(--primary-color);">2차 인증</h2>
+                </div>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{% if category == 'error' %}error{% elif category == 'success' %}success{% else %}info{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <p style="text-align: center; color: #666; margin-bottom: 2rem;">
+                    <strong>{{ email }}</strong>로 전송된 6자리 인증 코드를 입력하세요.
+                </p>
+                
+                <form method="POST" action="/auth/verify-2fa">
+                    <div class="form-group">
+                        <label for="code">인증 코드</label>
+                        <input type="text" id="code" name="code" 
+                               placeholder="000000" maxlength="6" pattern="[0-9]{6}"
+                               required autofocus style="text-align: center; font-size: 1.5rem; letter-spacing: 0.3em;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                        인증
+                    </button>
+                </form>
+                
+                <p style="text-align: center; color: #999; font-size: 0.9rem; margin-top: 2rem;">
+                    코드가 만료되었거나 받지 못했나요?
+                </p>
+                
+                <a href="/auth/login" style="display: block; text-align: center; color: var(--primary-color); text-decoration: none; margin-top: 1rem;">
+                    다시 로그인하기
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.getElementById('code').addEventListener('input', function(e) {
+    // 숫자만 입력 가능
+    this.value = this.value.replace(/[^0-9]/g, '');
+    
+    // 6자리 입력되면 자동으로 폼 제출
+    if (this.value.length === 6) {
+        // 자동 제출은 제거 (사용자가 명시적으로 제출하도록)
+    }
+});
+</script>
+{% endblock %}

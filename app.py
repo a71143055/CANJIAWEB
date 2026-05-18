@@ -399,6 +399,58 @@ def auth_settings():
     user = User.query.get(session['user_id'])
     return render_template('auth_settings.html', user=user)
 
+@app.route('/auth/toggle-2fa', methods=['POST'])
+def toggle_2fa():
+    """2FA 활성화/비활성화"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    action = request.form.get('action')
+    
+    if action == 'enable':
+        user.two_factor_enabled = True
+        flash('2차 인증이 활성화되었습니다.', 'success')
+    elif action == 'disable':
+        user.two_factor_enabled = False
+        flash('2차 인증이 비활성화되었습니다.', 'warning')
+    
+    db.session.commit()
+    return redirect(url_for('auth_settings'))
+
+@app.route('/auth/change-password', methods=['POST'])
+def change_password():
+    """비밀번호 변경"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user = User.query.get(session['user_id'])
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+    
+    # 현재 비밀번호 검증
+    if not user.check_password(current_password):
+        flash('현재 비밀번호가 잘못되었습니다.', 'error')
+        return redirect(url_for('auth_settings'))
+    
+    # 새 비밀번호 일치 확인
+    if new_password != confirm_password:
+        flash('새 비밀번호가 일치하지 않습니다.', 'error')
+        return redirect(url_for('auth_settings'))
+    
+    # 비밀번호 길이 확인
+    if len(new_password) < 6:
+        flash('비밀번호는 최소 6자 이상이어야 합니다.', 'error')
+        return redirect(url_for('auth_settings'))
+    
+    # 비밀번호 변경
+    user.set_password(new_password)
+    db.session.commit()
+    
+    flash('비밀번호가 변경되었습니다.', 'success')
+    return redirect(url_for('auth_settings'))
+
 @app.errorhandler(404)
 def not_found(error):
     """404 에러 핸들러"""

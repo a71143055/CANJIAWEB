@@ -5,6 +5,7 @@ CANJIA Flask 애플리케이션 메인 파일
 
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -27,6 +28,11 @@ db = SQLAlchemy(app)
 
 # 세션 초기화
 Session(app)
+
+# 애플리케이션 시작 시 데이터베이스 테이블 보장
+with app.app_context():
+    db.create_all()
+
 
 # ============================================================
 # 유틸리티 함수
@@ -197,10 +203,15 @@ def signup():
             return render_template('signup.html')
         
         # 새 사용자 생성
-        user = User(email=email, name=name)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
+        try:
+            user = User(email=email.strip().lower(), name=name.strip())
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash('회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'error')
+            return render_template('signup.html')
         
         flash('회원가입이 완료되었습니다. 로그인해주세요.', 'success')
         return redirect(url_for('login'))

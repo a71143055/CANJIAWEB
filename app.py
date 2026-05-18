@@ -16,6 +16,7 @@ from config import config
 # Flask 앱 초기화
 app = Flask(__name__)
 app.config.from_object(config['development'])
+app.secret_key = app.config.get('SECRET_KEY') or 'canjia-secret-key-2026'
 
 # 데이터베이스 초기화
 db = SQLAlchemy(app)

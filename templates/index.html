@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}홈 - CANJIA{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1 class="hero-title">제주 산업 발전 및 네트워크 공동체</h1>
+        <p class="hero-subtitle">CANJIA - Community for Association & Network in Jeju Industry Association</p>
+        <div class="hero-buttons">
+            {% if not user %}
+                <a href="/auth/signup" class="btn btn-primary">시작하기</a>
+                <a href="/intro" class="btn btn-secondary">더 알아보기</a>
+            {% else %}
+                <a href="/fields" class="btn btn-primary">분야 탐색</a>
+                <a href="/document/new" class="btn btn-secondary">문서 작성</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% if user %}
+<!-- 로그인 상태 홈페이지 -->
+<section style="background: white; padding: 3rem 0;">
+    <div class="container">
+        <h2 class="section-title" style="color: var(--dark-text);">환영합니다, {{ user.name }}님!</h2>
+        
+        <div class="grid">
+            <!-- 분야 카드 -->
+            <div class="card">
+                <div class="card-title">🎯 분야 탐색</div>
+                <p class="card-text">AGI, ACTF, 수영, 스키, 암벽등반, 카페취업, 기술연마 등 다양한 분야를 탐색하고 경험을 공유하세요.</p>
+                <a href="/fields" class="btn btn-primary" style="margin-top: 1rem;">분야 보기</a>
+            </div>
+            
+            <!-- 문서 작성 카드 -->
+            <div class="card">
+                <div class="card-title">📝 문서 작성</div>
+                <p class="card-text">당신의 경험과 지식을 문서로 작성하고 커뮤니티와 공유하세요. Google Docs처럼 쉽게 작성할 수 있습니다.</p>
+                <a href="/document/new" class="btn btn-primary" style="margin-top: 1rem;">새 문서</a>
+            </div>
+            
+            <!-- 내 문서 카드 -->
+            <div class="card">
+                <div class="card-title">📚 내 문서</div>
+                <p class="card-text">내가 작성한 모든 문서를 관리하고 수정할 수 있습니다. 커뮤니티와의 상호작용을 확인하세요.</p>
+                <a href="/documents" class="btn btn-primary" style="margin-top: 1rem;">문서 관리</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 내 프로필 섹션 -->
+<section style="background: var(--light-bg);">
+    <div class="container">
+        <h2 class="section-title" style="color: var(--dark-text);">내 프로필</h2>
+        <div class="card">
+            <div class="user-profile">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image }}" alt="{{ user.name }}" class="profile-image">
+                {% else %}
+                    <div class="profile-image" style="background: var(--primary-color); color: white; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                        👤
+                    </div>
+                {% endif %}
+                <div class="profile-info">
+                    <h3 class="profile-name">{{ user.name }}</h3>
+                    <p class="profile-email">{{ user.email }}</p>
+                    {% if user.bio %}
+                        <p>{{ user.bio }}</p>
+                    {% endif %}
+                    {% if user.fields %}
+                        <p><strong>관심 분야:</strong> {{ user.fields }}</p>
+                    {% endif %}
+                    <a href="/auth/profile" class="btn btn-primary" style="margin-top: 1rem;">프로필 수정</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<!-- 비로그인 상태 홈페이지 -->
+<section style="background: white; padding: 3rem 0;">
+    <div class="container">
+        <h2 class="section-title" style="color: var(--dark-text);">CANJIA의 미션</h2>
+        
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">🚀 경제 자립</div>
+                <p class="card-text">배우고 학습하는 시대에서 벗어나 실제 경제 활동을 시작합니다. 커뮤니티와 함께 성장하세요.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🎨 취미 생활</div>
+                <p class="card-text">수영, 스카이 다이빙, 암벽 등반 등 다양한 취미 활동을 통해 삶의 질을 높입니다.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">⚡ 기술 증진</div>
+                <p class="card-text">AGI와 Android Cyborg Transformers 기술 개발을 통해 미래를 준비합니다.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">👥 회원 모집</div>
+                <p class="card-text">혼자서 할 수 없는 일들을 함께 이루기 위해 같은 생각을 가진 사람들을 모집합니다.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🏠 주거 이전</div>
+                <p class="card-text">제주도로의 이전을 통해 새로운 삶의 환경을 구축합니다.</p>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">♾️ 생명 연장</div>
+                <p class="card-text">기술을 통해 생명 연장을 목표로 합니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section style="background: var(--light-bg);">
+    <div class="container" style="text-align: center;">
+        <h2 class="section-title" style="color: var(--dark-text);">지금 시작하세요</h2>
+        <p style="font-size: 1.1rem; color: var(--dark-text); margin-bottom: 2rem;">
+            CANJIA 커뮤니티의 일원이 되어 함께 성장하고 발전해보세요.
+        </p>
+        <a href="/auth/signup" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">무료 가입하기</a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - CANJIA{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem;">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="flex: 1;">
+                <span class="document-field" style="background: rgba(255, 255, 255, 0.2); color: white;">{{ document.field }}</span>
+                <h1 style="font-size: 2.5rem; margin: 1rem 0;">{{ document.title }}</h1>
+            </div>
+            {% if user and user.id == document.user_id %}
+                <div style="display: flex; gap: 1rem;">
+                    <a href="/document/{{ document.id }}/edit" class="btn" style="background: white; color: var(--primary-color);">✏️ 수정</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <div style="max-width: 800px; margin: 0 auto;">
+            <!-- 문서 정보 -->
+            <div style="background: var(--light-bg); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; border-left: 4px solid var(--primary-color);">
+                <div class="document-meta" style="gap: 2rem;">
+                    <div>
+                        <strong>작성자:</strong>
+                        <a href="#" style="color: var(--primary-color); text-decoration: none; margin-left: 0.5rem;">{{ document.author.name }}</a>
+                    </div>
+                    <div>
+                        <strong>작성일:</strong>
+                        <span style="margin-left: 0.5rem;">{{ document.created_at.strftime('%Y년 %m월 %d일 %H:%M') }}</span>
+                    </div>
+                    <div>
+                        <strong>수정일:</strong>
+                        <span style="margin-left: 0.5rem;">{{ document.updated_at.strftime('%Y년 %m월 %d일 %H:%M') }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 문서 내용 -->
+            <div class="card" style="font-size: 1.1rem; line-height: 1.8;">
+                <div style="white-space: pre-wrap; color: #333;">{{ document.content }}</div>
+            </div>
+            
+            <!-- 댓글 섹션 -->
+            <div style="margin-top: 3rem;">
+                <h2 style="color: var(--dark-text); margin-bottom: 1.5rem;">💬 댓글</h2>
+                
+                {% if user %}
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <form method="POST" action="/api/comment/create">
+                            <input type="hidden" name="document_id" value="{{ document.id }}">
+                            <div class="form-group">
+                                <textarea name="content" placeholder="댓글을 입력하세요..." style="min-height: 100px;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">댓글 작성</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="card" style="background: var(--light-bg); margin-bottom: 2rem;">
+                        <p style="color: #666; margin: 0;">댓글을 작성하려면 <a href="/auth/login" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">로그인</a>하세요.</p>
+                    </div>
+                {% endif %}
+                
+                <!-- 댓글 목록 -->
+                {% if document.comments %}
+                    {% for comment in document.comments %}
+                        <div class="card" style="margin-bottom: 1rem; border-left: 3px solid var(--primary-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <strong>{{ comment.author.name }}</strong>
+                                <span style="color: #999; font-size: 0.9rem;">{{ comment.created_at.strftime('%Y년 %m월 %d일 %H:%M') }}</span>
+                            </div>
+                            <p style="color: #333; margin: 0.5rem 0;">{{ comment.content }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: #999; text-align: center;">아직 댓글이 없습니다.</p>
+                {% endif %}
+            </div>
+            
+            <!-- 액션 버튼 -->
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <a href="/field/{{ document.field }}" class="btn btn-secondary">{{ document.field }} 분야 보기</a>
+                <a href="/documents" class="btn btn-secondary">다른 문서 보기</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

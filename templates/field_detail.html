@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ field_name }} - CANJIA{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem;">
+    <div class="container">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">{{ field_name }}</h1>
+        <p style="font-size: 1.1rem;">이 분야의 모든 문서와 경험을 공유합니다.</p>
+    </div>
+</section>
+
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <!-- 필드 네비게이션 -->
+        <div class="field-nav">
+            {% for f in fields %}
+                <a href="/field/{{ f }}" {% if f == field_name %}class="active"{% endif %}>{{ f }}</a>
+            {% endfor %}
+        </div>
+        
+        <!-- 액션 버튼 -->
+        <div style="margin-bottom: 2rem;">
+            <a href="/document/new" class="btn btn-primary">새 문서 작성</a>
+            <a href="/documents" class="btn btn-secondary">내 문서</a>
+        </div>
+        
+        <!-- 문서 목록 -->
+        {% if documents %}
+            <h2 style="margin-bottom: 2rem; color: var(--dark-text);">{{ field_name }} 분야의 문서 ({{ documents|length }}개)</h2>
+            
+            {% for doc in documents %}
+                <div class="document-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                            <a href="/document/{{ doc.id }}" style="text-decoration: none; color: inherit;">
+                                <h3 class="document-title">{{ doc.title }}</h3>
+                            </a>
+                            <div class="document-meta">
+                                <span>👤 {{ doc.author.name }}</span>
+                                <span>📅 {{ doc.created_at.strftime('%Y년 %m월 %d일') }}</span>
+                                <span class="document-field">{{ doc.field }}</span>
+                            </div>
+                            <p style="color: #666; margin-bottom: 1rem; line-height: 1.6;">
+                                {{ doc.content[:150] }}{% if doc.content|length > 150 %}...{% endif %}
+                            </p>
+                        </div>
+                        <div style="margin-left: 1rem;">
+                            <a href="/document/{{ doc.id }}" class="btn btn-primary">보기</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="card" style="text-align: center;">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">이 분야에 아직 문서가 없습니다.</p>
+                <a href="/document/new" class="btn btn-primary">첫 번째 문서 작성하기</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

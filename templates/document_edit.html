@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{% if document %}문서 수정{% else %}새 문서 작성{% endif %} - CANJIA{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem;">
+    <div class="container">
+        <h1 style="font-size: 2.5rem;">{% if document %}문서 수정{% else %}새 문서 작성{% endif %}</h1>
+        <p style="font-size: 1.1rem;">Google Docs처럼 쉽게 작성하고 공유하세요.</p>
+    </div>
+</section>
+
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <div style="max-width: 900px; margin: 0 auto;">
+            <div class="card">
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="title">제목 *</label>
+                        <input type="text" id="title" name="title" 
+                               value="{% if document %}{{ document.title }}{% endif %}" 
+                               placeholder="문서 제목을 입력하세요" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="field">분야 선택 *</label>
+                        <select id="field" name="field" required>
+                            <option value="">분야를 선택하세요</option>
+                            {% for f in fields %}
+                                <option value="{{ f }}" {% if document and document.field == f %}selected{% endif %}>
+                                    {{ f }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content">내용 *</label>
+                        <textarea id="content" name="content" 
+                                  placeholder="문서 내용을 작성하세요. Markdown 형식을 지원합니다."
+                                  required>{% if document %}{{ document.content }}{% endif %}</textarea>
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="checkbox" id="is_public" name="is_public" 
+                               {% if not document or document.is_public %}checked{% endif %}>
+                        <label for="is_public" style="margin: 0;">공개 문서 (모든 사용자에게 공개)</label>
+                    </div>
+                    
+                    <div style="background: var(--light-bg); padding: 1rem; border-radius: 5px; margin-bottom: 2rem;">
+                        <h4 style="margin-bottom: 0.5rem; color: var(--primary-color);">💡 작성 팁</h4>
+                        <ul style="margin-left: 2rem; color: #666; font-size: 0.9rem;">
+                            <li>명확하고 구체적인 제목을 작성하세요</li>
+                            <li>Markdown 형식으로 텍스트를 꾸밀 수 있습니다 (#제목, **굵게**, *기울임*)</li>
+                            <li>공개 문서는 다른 회원들이 볼 수 있습니다</li>
+                            <li>정기적으로 업데이트하면 더 많은 사람들이 볼 수 있습니다</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">
+                            {% if document %}수정 완료{% else %}문서 작성{% endif %}
+                        </button>
+                        <a href="/documents" class="btn btn-secondary" style="flex: 1; text-align: center;">취소</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

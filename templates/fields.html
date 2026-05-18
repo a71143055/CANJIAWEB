@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}분야 탐색 - CANJIA{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 3rem 2rem;">
+    <div class="container">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">분야 탐색</h1>
+        <p style="font-size: 1.1rem;">CANJIA의 7가지 분야에서 당신의 관심분야를 선택하고 경험을 공유하세요.</p>
+    </div>
+</section>
+
+<section style="padding: 3rem 0;">
+    <div class="container">
+        <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">7가지 분야</h2>
+        
+        <div class="grid">
+            {% set field_descriptions = {
+                'AGI': '범용 인공 지능 - 사람의 수준에 맞는 AI 개발',
+                'ACTF': '안드로이드 사이보그 트랜스포머 - 미래 로봇 기술',
+                '수영': '무중력 환경 체험 - 우주 적응 훈련',
+                '스키': '중력 활용 스포츠 - 신체 능력 개발',
+                '암벽등반': '중력 극복 - 정신력 단련',
+                '카페취업': '제주도 경제 활동 - 실무 경험',
+                '기술연마': '바리스타 기술 등 - 경제 자립'
+            } %}
+            
+            {% for field in fields %}
+                <div class="card">
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">
+                            {% if field == 'AGI' %}🤖
+                            {% elif field == 'ACTF' %}🔧
+                            {% elif field == '수영' %}🏊
+                            {% elif field == '스키' %}🪂
+                            {% elif field == '암벽등반' %}🧗
+                            {% elif field == '카페취업' %}☕
+                            {% elif field == '기술연마' %}⚙️
+                            {% endif %}
+                        </div>
+                    </div>
+                    <h3 class="card-title" style="text-align: center;">{{ field }}</h3>
+                    <p class="card-text" style="text-align: center; margin-bottom: 1.5rem;">
+                        {{ field_descriptions.get(field, '분야 설명') }}
+                    </p>
+                    <div style="text-align: center;">
+                        <a href="/field/{{ field }}" class="btn btn-primary">{{ field }} 탐색</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section style="background: var(--light-bg);">
+    <div class="container">
+        <div class="card" style="text-align: center;">
+            <h2 style="color: var(--primary-color); margin-bottom: 1rem;">새 문서 작성</h2>
+            <p style="margin-bottom: 1rem;">당신의 경험과 지식을 다른 회원들과 공유하세요.</p>
+            <a href="/document/new" class="btn btn-primary">문서 작성 시작</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
